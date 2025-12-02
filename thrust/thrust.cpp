@@ -28,7 +28,7 @@ void thrust_init() {
 
     Serial.println("Thrust measurement initialized.");
 }
-
+    
 // ------------------- Read Function -------------------
 float thrust_read() {
     // Average 5 samples for noise reduction
