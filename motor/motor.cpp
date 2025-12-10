@@ -7,11 +7,13 @@
 Servo esc;                            // ESC Object
 unsigned long lastPulseTime = 0;      // Timestamp of last valid throttle pulse (microseconds)
 uint16_t lastPulseWidth = 1500;       // Last valid pulse width (microseconds)
-const int RC_MIN_PULSE = 1000;        // Minimum RC pulse (microseconds)
+const int RC_MIN_PULSE = 1055;        // Minimum RC pulse (microseconds)
 const int RC_MAX_PULSE = 2000;        // Maximum RC pulse (microseconds)
-const int THROTTLE_PIN =              // TO BE DETERMINED
 const int THROTTLE_MIN = 0;           // Minimum throttle (0%)
 const int THROTTLE_MAX = 255;         // Max throttle (100%)
+const int ESC_PIN = 13;               // ESC signal pin (GPI013)
+const int ARM_PULSE = 1000;           // Minimum throttle pulse
+const int ARM_TIME = 3000;            // ESC arming time (milliseconds)
 
 enum MotorState {
   MOTOR_DISARMED,
@@ -29,13 +31,15 @@ struct MotorStatus {
   uint8_t current;      // Actualliy applied 0-255
 }
 
+MotorStatus motorStatus;
+
 void setup() {
   Serial.begin(9600);
-  initESCOutput();          // Initialize ESC Output
+  initESCOutput();      // Initialize ESC Output
 
   lastPulseTime = micros();
   lastPulseWidth = 1500;
-  currentMotorState = MOTOR_DISARMED;
+  currentMotorState = MOTOR_DISARMED; 
 
   Serial.println("System init complete. Motor DISARMED");
 
@@ -45,9 +49,9 @@ void setup() {
 // ESC Output and Throttle Commands
 //
 void initESCOutput() {
-  esc.attach(ESC_PIN);          // Attach ESC to pin
-  esc.writeMicroseconds(1000);  // Set to minimum throttle
-  delay(100);                   // Safety delay
+esc.attach(ESC_PIN, 1000, 2000); // Attach ESC signal pin with min/max pulse widths
+// Arm ESC at min throttle
+escArmingSequence();
 }
 
 void setESCthrottle(uint8_t throttle) {
@@ -60,18 +64,10 @@ void setESCthrottle(uint8_t throttle) {
 // ESC Arming and Setup Sequence
 //
 void escArmingSequence() {
-  Serial.println("Starting ESC Arming Sequence...");
-
-  setESCthrottle(0);                                   // Set to minimum throttle (1000 us), idle signal
-
-  // Hold minimum throttle for ESC arming duration
-  unsigned long startTime = millis();
-  while (millis() - startTime < 4000) {               // 4 seconds ESC arming time
-    setESCthrottle(0);
-    delay(20);                                        // Repeatedly send signal at 50 Hz to ensure reliable arming
-  }
-
-  Serial.println("ESC Arming Sequence Complete.");
+  Serial.println("Arming ESC...");
+  esc.writeMicroseconds(ARM_PULSE); // Send minimum throttle
+  delay(ARM_TIME);
+  Serial.println("ESC Armed.");
 }
 
 //
@@ -97,7 +93,7 @@ int16_t readThrottleInput() {
 
   // Store last valid throttle for failsafe
   lastPulseTime = micros();
-  LastPulseWidth = pulseWidth;
+  lastPulseWidth = pulseWidth;
   return (int16_t)throttle;
 }
 
@@ -134,7 +130,7 @@ void failSafeProcedure() {
 // Motor State Machine
 //
 void motorStateMachine(uint8_t cmd) {
-  switch(motorState) {
+  switch(currentMotorState) {
 
     case MOTOR_DISARMED:
       // Start up label after ESC is armed 
@@ -143,18 +139,18 @@ void motorStateMachine(uint8_t cmd) {
     case MOTOR_ARMING:
       // Run the ESC arming sequence
       escArmingSequence(); // After arming, transition to READY state
-      motorState = MOTOR_READY;
+      currentMotorState = MOTOR_READY;
       break;
     
       case MOTOR_READY:
       if (cmd > 12) {    // Small deadband to avoid accidental starts
-        motorState = MOTOR_RUNNING;
+        currentMotorState = MOTOR_RUNNING;
       }
       break;
     
     case MOTOR_RUNNING:
       if (cmd < 5) {    // Small deadband to avoid accidental stops
-        motorState = MOTOR_READY;
+        currentMotorState = MOTOR_READY;
       }
       break;
     
@@ -164,6 +160,21 @@ void motorStateMachine(uint8_t cmd) {
       break;
   }
 }
+
+/// NMEA Motor Sentence
+void sendMotorStatusNMEA() {
+  String sentence = build_nmea(
+    "MOTOR,STATE",
+    (int)currentMotorState,
+    motorStatus.target,
+    motorStatus.current,
+    lastPulseWidth
+  );
+
+  Serial.print(sentence);
+
+}
+
 
 
 
