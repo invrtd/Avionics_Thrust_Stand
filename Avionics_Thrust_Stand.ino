@@ -5,20 +5,14 @@
 #include "motor/motor.h"
 #include "airspeed/airspeed.h"
 #include "power/power.h"
-
+#include "power/power.cpp"
 void setup() {
-  rpm_init();
-  thrust_init();
-  motor_init();
-  airspeed_init();
   power_init();
+  Serial.begin(9600);
 }
 
 void loop() {
-  rpm_update();
-  thrust_update();
-  airspeed_update();
+  delay(200);
   power_update();
-  motor_update();   
-
+  power_output();
 }
