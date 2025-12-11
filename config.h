@@ -29,5 +29,5 @@ const int THRUST_ADC_PIN  = A0;
 #define ACS_SENSITIVITY       0.04  // 40 mV per amp
 
 // ---------------- RPM CONFIG ----------------
-#define RPM_PIN 14
+#define RPM_PIN 27
 #define POLE_PAIRS 7 // 14 magnets / 2 = 7 pairs

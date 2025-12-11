@@ -2,5 +2,6 @@
 
 void rpm_init();
 void rpm_update();
-float get_rpm();
+int get_rpm();
 float get_total_revs();
+void rpm_output(); // NMEA output

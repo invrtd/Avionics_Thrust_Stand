@@ -4,7 +4,9 @@
 #include "util.h"
 
 #include "rpm/rpm.h"
-#include "rpm/rpm.cpp"
+#include "rpm/rpm.cpp" // Include impl if needed by Arduino IDE quirk, or just link. 
+// Standard arduino structure often needs CPP included if not using library structure properly.
+// Assuming user had them included before.
 
 #include "thrust/thrust.h"
 #include "thrust/thrust.cpp"
@@ -19,73 +21,58 @@
 #include "power/power.cpp"
 
 
-// look at util.h file
 void setup() {
   Serial.begin(115200);
+  
+  Serial.println("Initializing Subsystems...");
+  
   rpm_init();
   thrust_init();
   motor_init();
-  //airspeed_init();
+  airspeed_init();
   power_init();
   
-  Serial.println("Send 'm <val>' to control motor. 0-255 or 1000-2000.");
+  Serial.println("System Ready.");
+  Serial.println("Commands: m <0-255>");
 }
 
 void loop() {
+  // 1. Update all sensors (read hardware)
   rpm_update();
-  thrust_read();
-  //airspeed_update();
-  //power_update();
+  thrust_update(); // Renamed from thrust_read
+  airspeed_update();
+  power_update();
   
-  static unsigned long rpmPrint = 0;
-  if(millis() - rpmPrint > 500) {
-      rpmPrint = millis();
-      Serial.print("RPM: ");
-      Serial.print(get_rpm());
-      Serial.print(" | Total Revs: ");
-      Serial.println(get_total_revs());
+  // 2. Output Data (NMEA format) at regular interval
+  static unsigned long lastOutput = 0;
+  if(millis() - lastOutput > 100) { // 10Hz output
+      lastOutput = millis();
+      
+      rpm_output();
+      thrust_output();
+      airspeed_output();
+      power_output();
   }
   
+  // 3. Process Input Commands
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
-    input.trim(); // Remove whitespace/newlines
+    input.trim();
 
     if (input.length() > 0) {
       char cmd = input.charAt(0);
       
       if (cmd == 'm' || cmd == 'M') {
-        // Parse the number after 'm'
-        // Substring from index 1 to end
         String valStr = input.substring(1);
         valStr.trim(); 
-        
         if (valStr.length() > 0) {
           int val = valStr.toInt();
-          Serial.print("Command received: m ");
-          Serial.println(val);
+          // Serial.print("CMD: m "); Serial.println(val); // Optional echo
           motor_define_speed(val);
-        } else {
-          Serial.println("Error: No value provided for motor command.");
         }
       } else {
-        Serial.print("Unknown command: ");
-        Serial.println(input);
+         // Unknown command
       }
     }
-  }
-
-
-  /*
-  build_nmea_sentence();
-  8*/
-  // delay(1000);
-  
-  // Serial.println(build_nmea("pws", 12.34, 5.67, 70.89));
-  
-  // Simple status output to match user request
-  static unsigned long lastPrint = 0;
-  if (millis() - lastPrint > 500) {
-    lastPrint = millis();
-    power_output(); 
   }
 }
