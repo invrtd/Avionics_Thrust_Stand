@@ -80,5 +80,5 @@ void power_update() {
 // ----------------------------------------------------
 void power_output() {
     String out = build_nmea("power", V_batt, I_batt, P_batt);
-    Serial.println(out);
+    dual_print(out);
 }

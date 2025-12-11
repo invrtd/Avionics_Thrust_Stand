@@ -64,5 +64,5 @@ float get_total_revs() {
 void rpm_output() {
     // $RPM,current,total*CS
     String msg = build_nmea("RPM", get_rpm(), get_total_revs());
-    Serial.print(msg);
+    dual_print(msg);
 }

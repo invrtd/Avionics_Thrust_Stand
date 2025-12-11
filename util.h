@@ -1,9 +1,20 @@
 #include <Arduino.h>
+#include "BluetoothSerial.h"
+
+extern BluetoothSerial SerialBT;
+
 #pragma once 
 
 // put functions that multiple sub systems need like formatting the output
 // and for functions like that you can add info to the box that appears when you 
 // hover over it NOTE for that to work it hast to be included in THAT file
+
+void dual_print(const String& msg) {
+    Serial.print(msg);
+    if (SerialBT.hasClient()) {
+        SerialBT.print(msg);
+    }
+}
 
 
 

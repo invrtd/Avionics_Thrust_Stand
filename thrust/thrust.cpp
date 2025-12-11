@@ -65,5 +65,5 @@ void thrust_output() {
     // $THRUST,mass_g,thrust_N*CS
     // Match CSV format roughly but in NMEA
     String msg = build_nmea("THRUST", current_mass_g, current_thrust_N);
-    Serial.print(msg);
+    dual_print(msg);
 }

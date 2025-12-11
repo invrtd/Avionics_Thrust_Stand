@@ -101,7 +101,7 @@ float get_ias() {
 }
 
 void airspeed_output() {
-    // $AIRSPEED,dp,ias*CS
-    String msg = build_nmea("AIRSPEED", current_dp, current_ias);
-    Serial.print(msg);
+    // $AIRSPEED,ias,dp*CS
+    String msg = build_nmea("AIRSPEED", current_ias, current_dp);
+    dual_print(msg);
 }
