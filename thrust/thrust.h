@@ -2,6 +2,6 @@
 #define THRUST_H
 
 void thrust_init();
-float thrust_read();
+void thrust_read();
 
 #endif

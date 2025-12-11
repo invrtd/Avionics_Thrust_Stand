@@ -1,11 +1,19 @@
 #pragma once
 
 // pin assignments
-const int MOTOR_PWM_PIN   = 5;
-const int MOTOR_RPM_PIN  = 2;
-const int THRUST_ADC_PIN  = A0;
-// ---------------- POWER CONFIG ----------------
 
+#define ESC_PIN  13
+// pin assignments
+// MOTOR_PWM_PIN removed; using ESC_PIN (13) strictly
+const int THRUST_ADC_PIN  = A0;
+
+
+#define HX711_DOUT_PIN  4   // HX711 DOUT (DT)
+#define HX711_SCK_PIN   5   // HX711 SCK (CLK)
+
+#define calibrationFactor  221.88f   // <--- CHANGE THIS
+
+// ---------------- POWER CONFIG ----------------
 // ESP32 ADC channels for voltage + current
 #define VOLTAGE_ADC_CHANNEL   ADC1_CHANNEL_6   // GPIO34
 #define CURRENT_ADC_CHANNEL   ADC1_CHANNEL_7   // GPIO35
@@ -20,4 +28,6 @@ const int THRUST_ADC_PIN  = A0;
 // ACS758 / ACS currents sensor parameters
 #define ACS_SENSITIVITY       0.04  // 40 mV per amp
 
-// etc...
+// ---------------- RPM CONFIG ----------------
+#define RPM_PIN 14
+#define POLE_PAIRS 7 // 14 magnets / 2 = 7 pairs

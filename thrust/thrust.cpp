@@ -1,20 +1,18 @@
 #include <Arduino.h>
 #include <HX711_ADC.h>
-
 //Pin definitions
-const int HX711_DOUT_PIN = 4;   // HX711 DOUT (DT)
-const int HX711_SCK_PIN  = 5;   // HX711 SCK (CLK)
+
 
 //calibration factor (may change)
-float calibrationFactor = 221.88f;   // <--- CHANGE THIS
+
 
 //load cell
 HX711_ADC loadCell(HX711_DOUT_PIN, HX711_SCK_PIN);
 
 //setup
-void setup() {
-  Serial.begin(9600);
-  delay(500);
+void thrust_init() {
+  // Serial.begin(9600); // Removed: Main setup handles Serial
+  // delay(500);
   Serial.println();
   Serial.println("=== HX711_ADC Thrust Stand ===");
 
@@ -35,14 +33,13 @@ void setup() {
 
   Serial.println("Setup complete. Reading thrust...");
 }
-
 //loop
-void loop() {
+void thrust_read() {
 
   loadCell.update();
 
   static unsigned long lastPrintTime = 0;
-  const unsigned long printInterval = 100; // ms (10 Hz)
+  const unsigned long printInterval = 1000; // ms (10 Hz)
 
   if (millis() - lastPrintTime >= printInterval) {
     lastPrintTime = millis();
